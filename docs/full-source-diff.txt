@@ -1,0 +1,518 @@
+diff -ruN '--exclude=target' original/software-quality-security-starter/docs/dependency-review.md software-quality-security-starter/docs/dependency-review.md
+--- original/software-quality-security-starter/docs/dependency-review.md	1970-01-01 00:00:00.000000000 +0000
++++ software-quality-security-starter/docs/dependency-review.md	2026-09-28 00:20:16.846572237 +0000
+@@ -0,0 +1,15 @@
++# Dependency Security Review
++
++The project uses Maven and inherits dependency versions from Spring Boot 3.5.6. An OWASP Dependency-Check Maven plugin has been added to `pom.xml` so the dependency tree can be analyzed for known published vulnerabilities.
++
++## Run the analysis
++From the project root run:
++
++`mvn org.owasp:dependency-check-maven:check`
++
++The generated HTML report is normally placed under `target/dependency-check-report.html`. Because `target/` is generated build output, use the report for evidence/screenshots but do not include `target/` in the submitted source ZIP.
++
++## What to document
++Record the date of the scan, the number of dependencies analyzed, and any actionable vulnerabilities reported. If the scan reports an actionable vulnerable dependency, update the appropriate direct dependency or Spring Boot parent version after checking compatibility, rerun tests, and rerun the scan. If it reports no actionable vulnerabilities, state that result and include a screenshot of the report rather than inventing a vulnerability.
++
++**Important:** The final scan result must come from the scan executed on the student's workstation. It is not pre-filled here because vulnerability databases change over time and this environment did not have Maven available to execute the scanner.
+diff -ruN '--exclude=target' original/software-quality-security-starter/docs/full-source-diff.txt software-quality-security-starter/docs/full-source-diff.txt
+--- original/software-quality-security-starter/docs/full-source-diff.txt	1970-01-01 00:00:00.000000000 +0000
++++ software-quality-security-starter/docs/full-source-diff.txt	2026-09-28 00:20:31.557684797 +0000
+@@ -0,0 +1,19 @@
++diff -ruN '--exclude=target' original/software-quality-security-starter/docs/dependency-review.md software-quality-security-starter/docs/dependency-review.md
++--- original/software-quality-security-starter/docs/dependency-review.md	1970-01-01 00:00:00.000000000 +0000
+++++ software-quality-security-starter/docs/dependency-review.md	2026-09-28 00:20:16.846572237 +0000
++@@ -0,0 +1,15 @@
+++# Dependency Security Review
+++
+++The project uses Maven and inherits dependency versions from Spring Boot 3.5.6. An OWASP Dependency-Check Maven plugin has been added to `pom.xml` so the dependency tree can be analyzed for known published vulnerabilities.
+++
+++## Run the analysis
+++From the project root run:
+++
+++`mvn org.owasp:dependency-check-maven:check`
+++
+++The generated HTML report is normally placed under `target/dependency-check-report.html`. Because `target/` is generated build output, use the report for evidence/screenshots but do not include `target/` in the submitted source ZIP.
+++
+++## What to document
+++Record the date of the scan, the number of dependencies analyzed, and any actionable vulnerabilities reported. If the scan reports an actionable vulnerable dependency, update the appropriate direct dependency or Spring Boot parent version after checking compatibility, rerun tests, and rerun the scan. If it reports no actionable vulnerabilities, state that result and include a screenshot of the report rather than inventing a vulnerability.
+++
+++**Important:** The final scan result must come from the scan executed on the student's workstation. It is not pre-filled here because vulnerability databases change over time and this environment did not have Maven available to execute the scanner.
+diff -ruN '--exclude=target' original/software-quality-security-starter/docs/issue-tracker.csv software-quality-security-starter/docs/issue-tracker.csv
+--- original/software-quality-security-starter/docs/issue-tracker.csv	1970-01-01 00:00:00.000000000 +0000
++++ software-quality-security-starter/docs/issue-tracker.csv	2026-09-28 00:20:16.842809084 +0000
+@@ -0,0 +1,8 @@
++ID,Type,Title,Location,Significance,Resolution,Status
++SQ-1,Security,SQL injection in ticket search,TicketRepository.search,"Untrusted search text was concatenated into SQL; injection could alter query behavior (OWASP A05:2025 Injection).","Replaced concatenation with JdbcTemplate bind parameters and escaped LIKE wildcards; added injection regression tests.",Resolved
++SQ-2,Security,Sensitive ticket data written to logs,TicketService.create,"Logging the full Ticket record exposed requester email and access token in logs (OWASP A02:2025 Security Misconfiguration / sensitive logging concern).","Log only ticket id, category, and status; never log the Ticket object or token.",Resolved
++SQ-3,Security,Internal exception details returned to clients,TicketController exception handler,"Raw exception and cause disclosed implementation details and could expose sensitive diagnostic information (OWASP A10:2025 Mishandling of Exceptional Conditions).","Added centralized exception handling with safe 400/404/500 responses; full unexpected details remain server-side only.",Resolved
++SQ-4,Quality/Security,Missing validation of ticket input,TicketService.create,"Blank/invalid/unbounded values could enter the application and create poor data or resource-abuse conditions.","Added required-field, email, category, and length validation plus boundary/invalid tests.",Resolved
++SQ-5,Quality,Unchecked ticket status and missing target handling,TicketService.changeStatus,"Enum parsing could throw an uncontrolled exception and an update could appear successful for a missing ticket.","Verify ticket exists and validate status before update; added parameterized invalid-status tests.",Resolved
++SQ-6,Security,H2 database console enabled,application.properties,"Development database console was enabled even though the application does not require it, increasing exposed attack surface (OWASP A02:2025 Security Misconfiguration).","Disabled H2 console and disabled error message/stacktrace inclusion.",Resolved
++SQ-7,Quality,Insufficient automated coverage,src/test,"Starter tests covered only three happy-path service cases and did not exercise boundaries, invalid input, injection, or user workflows.","Expanded unit, repository security, parameterized, boundary, and end-to-end HTTP workflow tests.",Resolved
+diff -ruN '--exclude=target' original/software-quality-security-starter/docs/issue-tracking-guide.md software-quality-security-starter/docs/issue-tracking-guide.md
+--- original/software-quality-security-starter/docs/issue-tracking-guide.md	1970-01-01 00:00:00.000000000 +0000
++++ software-quality-security-starter/docs/issue-tracking-guide.md	2026-09-28 00:20:16.847268939 +0000
+@@ -0,0 +1,7 @@
++# Issue Tracking Evidence
++
++`issue-tracker.csv` contains the seven tracked findings with IDs, locations, significance, resolution, and final status. It is suitable for importing/copying into the issue tracker used for the course (for example GitHub Issues/Projects, Jira, or another approved tracker).
++
++For assignment evidence, capture the tracker showing SQ-1 through SQ-7 and their final Resolved/Closed status. Open at least one security issue in the tracker for a detail screenshot showing the problem, location, significance, planned correction, and resolution.
++
++The CSV is documentation of the issue records; if the instructor requires evidence from an actual tracking system, create/import these records there and submit screenshots or a repository/project link. Do not represent the CSV alone as an external issue-tracking system if the course requires one.
+diff -ruN '--exclude=target' original/software-quality-security-starter/docs/quality-security-findings.md software-quality-security-starter/docs/quality-security-findings.md
+--- original/software-quality-security-starter/docs/quality-security-findings.md	1970-01-01 00:00:00.000000000 +0000
++++ software-quality-security-starter/docs/quality-security-findings.md	2026-09-28 00:20:16.845094283 +0000
+@@ -0,0 +1,46 @@
++# Quality and Security Findings
++
++## SQ-1 — SQL injection in search
++**Original problem:** `TicketRepository.search` constructed SQL by concatenating the user's search term directly into the query. A value such as `' OR 1=1 --` could change the meaning of the SQL rather than being treated as search text.
++
++**Significance:** This is an injection flaw (OWASP Top 10 2025 A05: Injection). It crosses the trust boundary between HTTP input and the database.
++
++**Correction:** Search now uses JDBC bind parameters. `%`, `_`, and the escape character are escaped so wildcard characters supplied by the user are treated as literal search text. `TicketRepositorySecurityTest` verifies an SQL-injection payload does not become a match-all query.
++
++## SQ-2 — Sensitive information in logs
++**Original problem:** `TicketService.create` logged the entire `Ticket` record. The record contains the requester's email address and `accessToken`.
++
++**Significance:** Logs often have different access and retention rules from application data. Writing credentials/tokens and personal data unnecessarily increases exposure if logs are accessed.
++
++**Correction:** The service logs only the new ticket's id, category, and status. The access token and email are not logged.
++
++## SQ-3 — Exception details exposed to the browser
++**Original problem:** `TicketController` returned `ex` and `ex.getCause()` directly in an HTTP response.
++
++**Significance:** Internal exception information can reveal implementation details and makes error behavior inconsistent. This aligns with OWASP Top 10 2025 A10: Mishandling of Exceptional Conditions.
++
++**Correction:** `GlobalExceptionHandler` returns controlled 400, 404, and generic 500 responses. Unexpected exception details are logged on the server rather than returned to the client.
++
++## SQ-4 — Missing input validation
++**Original problem:** New-ticket fields were passed directly from the controller to persistence with no meaningful validation.
++
++**Significance:** Invalid, blank, malformed, and excessively large input reduces data quality and can create reliability/security problems.
++
++**Correction:** `TicketService` validates required fields, email format, allowed categories, search length, and field-length boundaries. Parameterized and boundary tests cover invalid and valid conditions.
++
++## SQ-5 — Uncontrolled status parsing / missing-ticket update
++**Original problem:** `TicketStatus.valueOf(status)` accepted unchecked request input and could throw an uncontrolled exception. The repository update did not establish that the requested ticket existed.
++
++**Correction:** The service first verifies the ticket exists and then parses only a valid status, returning a controlled bad request for invalid status input.
++
++## SQ-6 — Unnecessary H2 console exposure
++**Original problem:** `spring.h2.console.enabled=true` enabled a development database interface that the application does not require.
++
++**Significance:** Unneeded administrative interfaces increase attack surface and are a security-configuration concern.
++
++**Correction:** The H2 console is disabled. Spring's error-message and stack-trace exposure are also explicitly disabled.
++
++## SQ-7 — Limited test coverage
++**Original problem:** The starter had only three service-level happy-path tests.
++
++**Correction:** The revised suite adds invalid and boundary conditions, parameterized tests, repository-level injection tests, and an end-to-end HTTP workflow that creates, searches, views, and changes a ticket.
+diff -ruN '--exclude=target' original/software-quality-security-starter/docs/testing-evidence-guide.md software-quality-security-starter/docs/testing-evidence-guide.md
+--- original/software-quality-security-starter/docs/testing-evidence-guide.md	1970-01-01 00:00:00.000000000 +0000
++++ software-quality-security-starter/docs/testing-evidence-guide.md	2026-09-28 00:20:16.845836212 +0000
+@@ -0,0 +1,15 @@
++# Testing and Screenshot Guide
++
++## Automated tests
++Run `mvn test` (or Eclipse: Run As > Maven test). Capture the final summary showing all tests pass and `BUILD SUCCESS`. Mark the test count, failures/errors, and build result.
++
++The suite covers: existing-ticket retrieval, missing tickets, valid status changes, multiple invalid statuses (parameterized), search behavior, blank search, multiple invalid emails (parameterized), invalid categories, description length boundary, SQL-injection/wildcard payloads, and end-to-end HTTP workflows.
++
++## End-to-end test evidence
++In the Maven output or JUnit view, identify `TicketWorkflowE2ETest`. It automates multiple HTTP/UI-level interactions against the full Spring application: create a ticket, search for it, view it, change status to CLOSED, and verify the changed status. It also verifies invalid submission and safe 404 behavior.
++
++## Representative application functionality
++Run `TicketApplication.java`, open `http://localhost:8080/tickets`, create a valid ticket, then open the created ticket. Capture a screenshot showing the created ticket and its fields/status. A second useful screenshot is the ticket after changing its status to CLOSED.
++
++## Security verification
++Run the full tests and use `TicketRepositorySecurityTest` as evidence that the SQL-injection payload is treated as data. `TicketWorkflowE2ETest.missingTicketReturns404WithoutStackTrace` demonstrates that missing resources return a controlled 404 without exception details.
+diff -ruN '--exclude=target' original/software-quality-security-starter/pom.xml software-quality-security-starter/pom.xml
+--- original/software-quality-security-starter/pom.xml	2026-09-19 23:05:29.000000000 +0000
++++ software-quality-security-starter/pom.xml	2026-09-28 00:20:16.716780697 +0000
+@@ -11,5 +11,11 @@
+     <dependency><groupId>com.h2database</groupId><artifactId>h2</artifactId><scope>runtime</scope></dependency>
+     <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-test</artifactId><scope>test</scope></dependency>
+   </dependencies>
+-  <build><plugins><plugin><groupId>org.springframework.boot</groupId><artifactId>spring-boot-maven-plugin</artifactId></plugin></plugins></build>
++  <build><plugins>
++    <plugin><groupId>org.springframework.boot</groupId><artifactId>spring-boot-maven-plugin</artifactId></plugin>
++    <plugin>
++      <groupId>org.owasp</groupId><artifactId>dependency-check-maven</artifactId><version>12.1.8</version>
++      <configuration><failBuildOnCVSS>7</failBuildOnCVSS></configuration>
++    </plugin>
++  </plugins></build>
+ </project>
+diff -ruN '--exclude=target' original/software-quality-security-starter/src/main/java/edu/seminolestate/tickets/controller/GlobalExceptionHandler.java software-quality-security-starter/src/main/java/edu/seminolestate/tickets/controller/GlobalExceptionHandler.java
+--- original/software-quality-security-starter/src/main/java/edu/seminolestate/tickets/controller/GlobalExceptionHandler.java	1970-01-01 00:00:00.000000000 +0000
++++ software-quality-security-starter/src/main/java/edu/seminolestate/tickets/controller/GlobalExceptionHandler.java	2026-09-28 00:19:25.420530631 +0000
+@@ -0,0 +1,34 @@
++package edu.seminolestate.tickets.controller;
++
++import edu.seminolestate.tickets.service.TicketNotFoundException;
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
++import org.springframework.http.HttpStatus;
++import org.springframework.http.ResponseEntity;
++import org.springframework.web.bind.annotation.ControllerAdvice;
++import org.springframework.web.bind.annotation.ExceptionHandler;
++import org.springframework.web.bind.annotation.ResponseBody;
++
++@ControllerAdvice
++public class GlobalExceptionHandler {
++    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
++
++    @ExceptionHandler(TicketNotFoundException.class)
++    @ResponseBody
++    public ResponseEntity<String> notFound(TicketNotFoundException ex) {
++        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Ticket not found");
++    }
++
++    @ExceptionHandler(IllegalArgumentException.class)
++    @ResponseBody
++    public ResponseEntity<String> badRequest(IllegalArgumentException ex) {
++        return ResponseEntity.badRequest().body(ex.getMessage());
++    }
++
++    @ExceptionHandler(Exception.class)
++    @ResponseBody
++    public ResponseEntity<String> unexpected(Exception ex) {
++        log.error("Unexpected application error", ex);
++        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred");
++    }
++}
+diff -ruN '--exclude=target' original/software-quality-security-starter/src/main/java/edu/seminolestate/tickets/controller/TicketController.java software-quality-security-starter/src/main/java/edu/seminolestate/tickets/controller/TicketController.java
+--- original/software-quality-security-starter/src/main/java/edu/seminolestate/tickets/controller/TicketController.java	2026-09-19 23:05:29.000000000 +0000
++++ software-quality-security-starter/src/main/java/edu/seminolestate/tickets/controller/TicketController.java	2026-09-28 00:19:25.833698523 +0000
+@@ -9,5 +9,4 @@
+  @PostMapping("/tickets") public String create(@RequestParam String requesterName,@RequestParam String email,@RequestParam String category,@RequestParam String description){var t=service.create(requesterName,email,category,description);return "redirect:/tickets/"+t.id();}
+  @GetMapping("/tickets/{id}") public String one(@PathVariable long id,Model m){m.addAttribute("ticket",service.get(id));return "ticket";}
+  @PostMapping("/tickets/{id}/status") public String status(@PathVariable long id,@RequestParam String status){service.changeStatus(id,status);return "redirect:/tickets/"+id;}
+- @ExceptionHandler(Exception.class) @ResponseBody public String error(Exception ex){return "Application error: "+ex+"\nCause: "+ex.getCause();}
+ }
+diff -ruN '--exclude=target' original/software-quality-security-starter/src/main/java/edu/seminolestate/tickets/repository/TicketRepository.java software-quality-security-starter/src/main/java/edu/seminolestate/tickets/repository/TicketRepository.java
+--- original/software-quality-security-starter/src/main/java/edu/seminolestate/tickets/repository/TicketRepository.java	2026-09-19 23:05:29.000000000 +0000
++++ software-quality-security-starter/src/main/java/edu/seminolestate/tickets/repository/TicketRepository.java	2026-09-28 00:19:25.289806089 +0000
+@@ -13,7 +13,12 @@
+  public List<Ticket> findAll(){return jdbc.query("select * from tickets order by id",this::map);}
+  public Optional<Ticket> findById(long id){return jdbc.query("select * from tickets where id=?",this::map,id).stream().findFirst();}
+  // Intentionally simple starter implementation for students to assess.
+- public List<Ticket> search(String term){String sql="select * from tickets where description like '%"+term+"%' or requester_name like '%"+term+"%'"; return jdbc.query(sql,this::map);}
++ public List<Ticket> search(String term){
++  String sql="select * from tickets where lower(description) like lower(?) escape '\\' or lower(requester_name) like lower(?) escape '\\' order by id";
++  String escaped=term.replace("\\","\\\\").replace("%","\\%").replace("_","\\_");
++  String pattern="%"+escaped+"%";
++  return jdbc.query(sql,this::map,pattern,pattern);
++ }
+  public Ticket save(String name,String email,String category,String description,String token){
+   var kh=new GeneratedKeyHolder();
+   PreparedStatementCreator psc=c->{PreparedStatement p=c.prepareStatement("insert into tickets(requester_name,email,category,description,status,access_token) values(?,?,?,?,?,?)",Statement.RETURN_GENERATED_KEYS);p.setString(1,name);p.setString(2,email);p.setString(3,category);p.setString(4,description);p.setString(5,"OPEN");p.setString(6,token);return p;};
+diff -ruN '--exclude=target' original/software-quality-security-starter/src/main/java/edu/seminolestate/tickets/service/TicketNotFoundException.java software-quality-security-starter/src/main/java/edu/seminolestate/tickets/service/TicketNotFoundException.java
+--- original/software-quality-security-starter/src/main/java/edu/seminolestate/tickets/service/TicketNotFoundException.java	1970-01-01 00:00:00.000000000 +0000
++++ software-quality-security-starter/src/main/java/edu/seminolestate/tickets/service/TicketNotFoundException.java	2026-09-28 00:19:24.830209542 +0000
+@@ -0,0 +1,7 @@
++package edu.seminolestate.tickets.service;
++
++public class TicketNotFoundException extends RuntimeException {
++    public TicketNotFoundException(long id) {
++        super("Ticket not found: " + id);
++    }
++}
+diff -ruN '--exclude=target' original/software-quality-security-starter/src/main/java/edu/seminolestate/tickets/service/TicketService.java software-quality-security-starter/src/main/java/edu/seminolestate/tickets/service/TicketService.java
+--- original/software-quality-security-starter/src/main/java/edu/seminolestate/tickets/service/TicketService.java	2026-09-19 23:05:29.000000000 +0000
++++ software-quality-security-starter/src/main/java/edu/seminolestate/tickets/service/TicketService.java	2026-09-28 00:19:24.829292978 +0000
+@@ -1,12 +1,81 @@
+ package edu.seminolestate.tickets.service;
+-import edu.seminolestate.tickets.model.*; import edu.seminolestate.tickets.repository.TicketRepository;
+-import org.slf4j.*; import org.springframework.stereotype.Service; import java.util.*;
++
++import edu.seminolestate.tickets.model.Ticket;
++import edu.seminolestate.tickets.model.TicketStatus;
++import edu.seminolestate.tickets.repository.TicketRepository;
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
++import org.springframework.stereotype.Service;
++
++import java.util.List;
++import java.util.Locale;
++import java.util.Set;
++import java.util.UUID;
++import java.util.regex.Pattern;
++
+ @Service
+ public class TicketService {
+- private static final Logger log=LoggerFactory.getLogger(TicketService.class); private final TicketRepository repo;
+- public TicketService(TicketRepository repo){this.repo=repo;}
+- public List<Ticket> all(){return repo.findAll();} public Ticket get(long id){return repo.findById(id).orElseThrow(()->new IllegalArgumentException("No ticket with id "+id));}
+- public List<Ticket> search(String q){return repo.search(q==null?"":q);}
+- public Ticket create(String name,String email,String category,String description){String token=UUID.randomUUID().toString(); Ticket t=repo.save(name,email,category,description,token); log.info("Created support ticket: {}",t); return t;}
+- public void changeStatus(long id,String status){repo.updateStatus(id,TicketStatus.valueOf(status));}
++    private static final Logger log = LoggerFactory.getLogger(TicketService.class);
++    private static final Pattern EMAIL = Pattern.compile("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$");
++    private static final Set<String> CATEGORIES = Set.of("Software", "Network", "Account", "Other");
++    private static final int MAX_NAME = 100;
++    private static final int MAX_EMAIL = 254;
++    private static final int MAX_DESCRIPTION = 2000;
++    private static final int MAX_SEARCH = 100;
++
++    private final TicketRepository repo;
++
++    public TicketService(TicketRepository repo) {
++        this.repo = repo;
++    }
++
++    public List<Ticket> all() {
++        return repo.findAll();
++    }
++
++    public Ticket get(long id) {
++        if (id <= 0) throw new IllegalArgumentException("Ticket id must be positive");
++        return repo.findById(id).orElseThrow(() -> new TicketNotFoundException(id));
++    }
++
++    public List<Ticket> search(String q) {
++        String term = q == null ? "" : q.trim();
++        if (term.length() > MAX_SEARCH) throw new IllegalArgumentException("Search term is too long");
++        return term.isEmpty() ? repo.findAll() : repo.search(term);
++    }
++
++    public Ticket create(String name, String email, String category, String description) {
++        String safeName = required(name, "Requester name", MAX_NAME);
++        String safeEmail = required(email, "Email", MAX_EMAIL).toLowerCase(Locale.ROOT);
++        String safeCategory = required(category, "Category", 30);
++        String safeDescription = required(description, "Description", MAX_DESCRIPTION);
++
++        if (!EMAIL.matcher(safeEmail).matches()) throw new IllegalArgumentException("Email address is invalid");
++        if (!CATEGORIES.contains(safeCategory)) throw new IllegalArgumentException("Category is invalid");
++
++        String token = UUID.randomUUID().toString();
++        Ticket ticket = repo.save(safeName, safeEmail, safeCategory, safeDescription, token);
++        // Deliberately avoid logging the Ticket object: it contains email and an access token.
++        log.info("Created support ticket id={} category={} status={}", ticket.id(), ticket.category(), ticket.status());
++        return ticket;
++    }
++
++    public void changeStatus(long id, String status) {
++        get(id); // verify the target exists before reporting success
++        if (status == null || status.isBlank()) throw new IllegalArgumentException("Status is required");
++        final TicketStatus parsed;
++        try {
++            parsed = TicketStatus.valueOf(status.trim().toUpperCase(Locale.ROOT));
++        } catch (IllegalArgumentException ex) {
++            throw new IllegalArgumentException("Status is invalid");
++        }
++        repo.updateStatus(id, parsed);
++    }
++
++    private String required(String value, String field, int maxLength) {
++        if (value == null || value.isBlank()) throw new IllegalArgumentException(field + " is required");
++        String trimmed = value.trim();
++        if (trimmed.length() > maxLength) throw new IllegalArgumentException(field + " is too long");
++        return trimmed;
++    }
+ }
+diff -ruN '--exclude=target' original/software-quality-security-starter/src/main/resources/application.properties software-quality-security-starter/src/main/resources/application.properties
+--- original/software-quality-security-starter/src/main/resources/application.properties	2026-09-19 23:05:29.000000000 +0000
++++ software-quality-security-starter/src/main/resources/application.properties	2026-09-28 00:19:25.957428194 +0000
+@@ -1,6 +1,8 @@
+ spring.datasource.url=jdbc:h2:mem:tickets;DB_CLOSE_DELAY=-1
+ spring.datasource.username=sa
+ spring.datasource.password=
+-spring.h2.console.enabled=true
++spring.h2.console.enabled=false
+ spring.sql.init.mode=always
+ spring.thymeleaf.cache=false
++server.error.include-message=never
++server.error.include-stacktrace=never
+diff -ruN '--exclude=target' original/software-quality-security-starter/src/test/java/edu/seminolestate/tickets/e2e/TicketWorkflowE2ETest.java software-quality-security-starter/src/test/java/edu/seminolestate/tickets/e2e/TicketWorkflowE2ETest.java
+--- original/software-quality-security-starter/src/test/java/edu/seminolestate/tickets/e2e/TicketWorkflowE2ETest.java	1970-01-01 00:00:00.000000000 +0000
++++ software-quality-security-starter/src/test/java/edu/seminolestate/tickets/e2e/TicketWorkflowE2ETest.java	2026-09-28 00:19:43.568551336 +0000
+@@ -0,0 +1,58 @@
++package edu.seminolestate.tickets.e2e;
++
++import org.junit.jupiter.api.Test;
++import org.springframework.beans.factory.annotation.Autowired;
++import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
++import org.springframework.boot.test.context.SpringBootTest;
++import org.springframework.test.web.servlet.MockMvc;
++
++import static org.hamcrest.Matchers.containsString;
++import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
++import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
++
++@SpringBootTest
++@AutoConfigureMockMvc
++class TicketWorkflowE2ETest {
++    @Autowired MockMvc mvc;
++
++    @Test void userCanCreateFindViewAndUpdateTicket() throws Exception {
++        String location=mvc.perform(post("/tickets")
++                .param("requesterName","Taylor Student")
++                .param("email","taylor@example.edu")
++                .param("category","Software")
++                .param("description","Printer driver needs update"))
++            .andExpect(status().is3xxRedirection())
++            .andReturn().getResponse().getRedirectedUrl();
++
++        mvc.perform(get("/tickets").param("q","Taylor Student"))
++            .andExpect(status().isOk())
++            .andExpect(content().string(containsString("Taylor Student")));
++
++        mvc.perform(get(location))
++            .andExpect(status().isOk())
++            .andExpect(content().string(containsString("Printer driver needs update")));
++
++        mvc.perform(post(location+"/status").param("status","CLOSED"))
++            .andExpect(status().is3xxRedirection());
++
++        mvc.perform(get(location))
++            .andExpect(status().isOk())
++            .andExpect(content().string(containsString("CLOSED")));
++    }
++
++    @Test void invalidTicketSubmissionIsRejected() throws Exception {
++        mvc.perform(post("/tickets")
++                .param("requesterName","")
++                .param("email","not-an-email")
++                .param("category","Software")
++                .param("description",""))
++            .andExpect(status().isBadRequest());
++    }
++
++    @Test void missingTicketReturns404WithoutStackTrace() throws Exception {
++        mvc.perform(get("/tickets/999999"))
++            .andExpect(status().isNotFound())
++            .andExpect(content().string("Ticket not found"))
++            .andExpect(content().string(org.hamcrest.Matchers.not(containsString("Exception"))));
++    }
++}
+diff -ruN '--exclude=target' original/software-quality-security-starter/src/test/java/edu/seminolestate/tickets/repository/TicketRepositorySecurityTest.java software-quality-security-starter/src/test/java/edu/seminolestate/tickets/repository/TicketRepositorySecurityTest.java
+--- original/software-quality-security-starter/src/test/java/edu/seminolestate/tickets/repository/TicketRepositorySecurityTest.java	1970-01-01 00:00:00.000000000 +0000
++++ software-quality-security-starter/src/test/java/edu/seminolestate/tickets/repository/TicketRepositorySecurityTest.java	2026-09-28 00:19:43.567571543 +0000
+@@ -0,0 +1,26 @@
++package edu.seminolestate.tickets.repository;
++
++import org.junit.jupiter.api.Test;
++import org.springframework.beans.factory.annotation.Autowired;
++import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
++import org.springframework.context.annotation.Import;
++
++import static org.junit.jupiter.api.Assertions.*;
++
++@JdbcTest
++@Import(TicketRepository.class)
++class TicketRepositorySecurityTest {
++    @Autowired TicketRepository repo;
++
++    @Test void sqlInjectionPayloadIsTreatedAsSearchText(){
++        int total=repo.findAll().size();
++        var results=repo.search("' OR 1=1 --");
++        assertTrue(total > 0);
++        assertTrue(results.isEmpty(),"Injection text must not turn the WHERE clause into a match-all query");
++    }
++
++    @Test void wildcardCharactersAreTreatedLiterally(){
++        assertTrue(repo.search("%").isEmpty());
++        assertTrue(repo.search("_").isEmpty());
++    }
++}
+diff -ruN '--exclude=target' original/software-quality-security-starter/src/test/java/edu/seminolestate/tickets/service/TicketServiceTest.java software-quality-security-starter/src/test/java/edu/seminolestate/tickets/service/TicketServiceTest.java
+--- original/software-quality-security-starter/src/test/java/edu/seminolestate/tickets/service/TicketServiceTest.java	2026-09-19 23:05:40.000000000 +0000
++++ software-quality-security-starter/src/test/java/edu/seminolestate/tickets/service/TicketServiceTest.java	2026-09-28 00:19:43.565647064 +0000
+@@ -1,11 +1,84 @@
+ package edu.seminolestate.tickets.service;
+-import edu.seminolestate.tickets.model.*; import edu.seminolestate.tickets.repository.TicketRepository;
+-import org.junit.jupiter.api.*; import org.junit.jupiter.api.extension.ExtendWith; import org.mockito.*; import java.util.*;
+-import static org.junit.jupiter.api.Assertions.*; import static org.mockito.Mockito.*;
++
++import edu.seminolestate.tickets.model.*;
++import edu.seminolestate.tickets.repository.TicketRepository;
++import org.junit.jupiter.api.*;
++import org.junit.jupiter.api.extension.ExtendWith;
++import org.junit.jupiter.params.ParameterizedTest;
++import org.junit.jupiter.params.provider.ValueSource;
++import org.mockito.*;
++
++import java.util.*;
++
++import static org.junit.jupiter.api.Assertions.*;
++import static org.mockito.Mockito.*;
++
+ @ExtendWith(org.mockito.junit.jupiter.MockitoExtension.class)
+ class TicketServiceTest {
+- @Mock TicketRepository repo; @InjectMocks TicketService service;
+- @Test void retrievesExistingTicket(){var t=new Ticket(1L,"Jordan Lee","jlee@example.edu","Software","IDE issue",TicketStatus.OPEN,"token");when(repo.findById(1L)).thenReturn(Optional.of(t));assertEquals("Jordan Lee",service.get(1L).requesterName());}
+- @Test void changesTicketStatus(){service.changeStatus(2L,"CLOSED");verify(repo).updateStatus(2L,TicketStatus.CLOSED);}
+- @Test void searchesForKnownTicket(){when(repo.search("Wi-Fi")).thenReturn(List.of(new Ticket(2L,"Morgan Diaz","mdiaz@example.edu","Network","Cannot connect to campus Wi-Fi",TicketStatus.IN_PROGRESS,"token")));assertEquals(1,service.search("Wi-Fi").size());}
++    @Mock TicketRepository repo;
++    @InjectMocks TicketService service;
++
++    @Test void retrievesExistingTicket(){
++        var t=new Ticket(1L,"Jordan Lee","jlee@example.edu","Software","IDE issue",TicketStatus.OPEN,"token");
++        when(repo.findById(1L)).thenReturn(Optional.of(t));
++        assertEquals("Jordan Lee",service.get(1L).requesterName());
++    }
++
++    @Test void missingTicketProducesNotFound(){
++        when(repo.findById(99L)).thenReturn(Optional.empty());
++        assertThrows(TicketNotFoundException.class,()->service.get(99L));
++    }
++
++    @Test void changesTicketStatus(){
++        when(repo.findById(2L)).thenReturn(Optional.of(ticket(2L)));
++        service.changeStatus(2L,"CLOSED");
++        verify(repo).updateStatus(2L,TicketStatus.CLOSED);
++    }
++
++    @ParameterizedTest
++    @ValueSource(strings={"INVALID","closed-now","123"," "})
++    void rejectsInvalidStatuses(String status){
++        when(repo.findById(2L)).thenReturn(Optional.of(ticket(2L)));
++        assertThrows(IllegalArgumentException.class,()->service.changeStatus(2L,status));
++        verify(repo,never()).updateStatus(anyLong(),any());
++    }
++
++    @Test void searchesForKnownTicket(){
++        when(repo.search("Wi-Fi")).thenReturn(List.of(ticket(2L)));
++        assertEquals(1,service.search("Wi-Fi").size());
++    }
++
++    @ParameterizedTest
++    @ValueSource(strings={"","   "})
++    void blankSearchReturnsAll(String q){
++        when(repo.findAll()).thenReturn(List.of(ticket(1L)));
++        assertEquals(1,service.search(q).size());
++        verify(repo,never()).search(anyString());
++    }
++
++    @ParameterizedTest
++    @ValueSource(strings={"","   ","not-an-email","a@","@example.com"})
++    void rejectsInvalidEmail(String email){
++        assertThrows(IllegalArgumentException.class,()->service.create("Student",email,"Software","Need help"));
++        verify(repo,never()).save(any(),any(),any(),any(),any());
++    }
++
++    @Test void rejectsUnknownCategory(){
++        assertThrows(IllegalArgumentException.class,()->service.create("Student","s@example.edu","Admin","Need help"));
++        verify(repo,never()).save(any(),any(),any(),any(),any());
++    }
++
++    @Test void acceptsValidTicketAtBoundary(){
++        String description="x".repeat(2000);
++        when(repo.save(any(),any(),any(),eq(description),any())).thenReturn(ticket(4L));
++        assertEquals(4L,service.create("Student","s@example.edu","Other",description).id());
++    }
++
++    @Test void rejectsDescriptionOverBoundary(){
++        assertThrows(IllegalArgumentException.class,()->service.create("Student","s@example.edu","Other","x".repeat(2001)));
++    }
++
++    private Ticket ticket(long id){
++        return new Ticket(id,"Morgan Diaz","mdiaz@example.edu","Network","Cannot connect to campus Wi-Fi",TicketStatus.IN_PROGRESS,"secret-token");
++    }
+ }
